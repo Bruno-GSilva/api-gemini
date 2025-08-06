@@ -10,19 +10,23 @@ app.use(express.json());
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-app.post('/ask', async (req, res) => {
-  const { question } = req.body;
-  if (!question) {
-    return res.status(400).json({ error: 'Pergunta não fornecida' });
+app.post('/translate', async (req, res) => {
+  const { text } = req.body;
+
+  if (!text) {
+    return res.status(400).json({ error: 'Texto em inglês não fornecido.' });
   }
 
   try {
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-    const result = await model.generateContent(question);
-    const response = await result.response;
-    const text = response.text();
 
-    res.json({ answer: text });
+    const prompt = `Traduza o seguinte texto do inglês para o português (tradução fiel e natural):\n\n"${text}"`;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const translatedText = response.text();
+
+    res.json({ translatedText });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Erro ao acessar API do Gemini', message: err.message });
@@ -30,5 +34,5 @@ app.post('/ask', async (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`API rodando em http://localhost:${port}`);
+  console.log(`API de tradução rodando em http://localhost:${port}`);
 });
